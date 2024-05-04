@@ -3,66 +3,62 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta page="index">
+        <script src="https://cdn.tailwindcss.com"></script>
         <title>Loading...</title>
-        <link rel="stylesheet" href="./static/css/w3.css">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
         <style>
-            body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
-            body {font-size:16px;}
-            .w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
-            .w3-half img:hover{opacity:1}
+            span.blockspam {
+                display: none;
+            }
         </style>
     </head>
     <body>
-        <!-- Sidebar/menu -->
-        <nav class="w3-sidebar w3-red w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px;font-weight:bold;" id="mySidebar"><br>
-            <a href="javascript:void(0)" onclick="w3_close()" class="w3-button w3-hide-large w3-display-topleft" style="width:100%;font-size:22px">Close Menu</a>
-            <div class="w3-container">
-                <h3 class="w3-padding-64"><b>Rokas<br>Stankūnas</b></h3>
+        <div class="flex h-screen text-white">
+            <div id="sidebar" class="w-96 bg-zinc-900 shadow-sm overflow-y-auto">
+              <h2 class="text-5xl font-mono text-center p-5" style="overflow-y:auto">
+                <a class="nav__link" data-link="" href="../">Rokas S.</a>
+              </h2><br>
+              <div id="links" class="w-full"></div>
             </div>
-            <div class="w3-bar-block">
-                <a href="/" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white" class="nav__link" data-link>Intro</a> 
-                <a href="/docs" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white" class="nav__link" data-link>Docs References</a> 
-                <a href="/contact" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white" class="nav__link" data-link>Services</a> 
+            <div class="flex-grow bg-white bg-zinc-950 px-20" style="width: calc(100% - 384px); overflow-y:auto">
+              <div id="app"></div>
             </div>
-        </nav>
-        
-        <!-- Top menu on small screens -->
-        <header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
-            <a href="javascript:void(0)" class="w3-button w3-red w3-margin-right" onclick="w3_open()">☰</a>
-            <span>Rokas Stankūnas</span>
-        </header>
-        
-        <!-- Overlay effect when opening sidebar on small screens -->
-        <div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
-        <nav class="nav">
-            <a href="/" class="nav__link" data-link>Intro</a>
-            <a href="/docs" class="nav__link" data-link>Reference Docs</a>
-            <a href="/contact" class="nav__link" data-link>Contact</a>
-        </nav>
-        <div class="w3-main" style="margin-left:340px;margin-right:40px">
-            <div id="app"></div>
-        </div>
+          </div>
+          
+            <style>
+              @media (max-width: 768px) {  /* Change breakpoint as needed */
+                .sidebar {
+                  position: fixed;  /* Make sidebar fixed on smaller screens */
+                  top: 0;
+                  left: -100%;  /* Hide sidebar initially */
+                  width: 100%;  /* Set width to 100% */
+                  transition: left 0.3s ease-in-out;  /* Add smooth transition */
+                }
+          
+                .sidebar.active {  /* Add a class for active state */
+                  left: 0;  /* Show sidebar on activation */
+                }
+              }
+            </style>
+        <!-- SPA magic -->
         <script type="module" src="/static/js/index.js"></script>
         <script>
-            // Script to open and close sidebar
-            function w3_open() {
-                document.getElementById("mySidebar").style.display = "block";
-                document.getElementById("myOverlay").style.display = "block";
-            }
-            
-            function w3_close() {
-                document.getElementById("mySidebar").style.display = "none";
-                document.getElementById("myOverlay").style.display = "none";
-            }
-            
-            // Modal Image Gallery
-            function onClick(element) {
-                document.getElementById("img01").src = element.src;
-                document.getElementById("modal01").style.display = "block";
-                var captionText = document.getElementById("caption");
-                captionText.innerHTML = element.alt;
-            }
+          fetch('/static/html/docs/blogs.json')
+          .then(response => response.json())
+          .then(data => {
+            const entries = data.data.sort((a, b) => a.title.localeCompare(b.title));
+            const linksDiv = document.getElementById('links');
+            entries.forEach(entry => {
+              const link = `/docs/${entry.id}`;
+              const title = entry.title;
+              const output = `<a class="p-5 block hover:bg-zinc-800 nav__link" data-link href="${link}">${title}</a>`;
+              const linkElement = document.createElement('a');
+              linkElement.innerHTML = output;
+              linksDiv.appendChild(linkElement);
+            });
+          })
+          .catch(error => console.error(error));
         </script>
+        
     </body>
 </html>
