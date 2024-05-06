@@ -1,0 +1,86 @@
+<script>hljs.initHighlightingOnLoad();</script>
+<h1 class="text-3xl font-bold text-center py-5">SSH configuration</h1>
+
+<!-- Fail2Ban config -->
+<div id="fail2ban">
+    <h2>
+        <a href="#fail2ban" class="text-2xl font-bold text-amber-600 nav__link" data-link style="margin-left: -22px"># </a>
+        <span class="text-2xl font-bold">Fail2Ban implementation</span>
+    </h2>
+    <p class="p-5">
+        In this chapter, one can find a simple instruction on how to set up Fail2Ban for SSH logins. To begin with, we need to install the service itself:
+    </p>
+    <pre><code class="shell">sudo apt update && sudo apt upgrade; # update system
+sudo apt-get install fail2ban; # install Fail2Ban service
+sudo systemctl enable fail2ban.service; # make Fail2Ban run on startup</code></pre>
+    <p class="p-5">
+        After the installation is complete, Fail2Ban <span class="text-sky-400" title="A Fail2ban jail is a configuration file that contains filters or arguments that protect your system or a particular service">jails</span> can be set up for your SSH server. The Fail2Ban configuration files are located in the <code>/etc/fail2ban</code> directory. Fail2Ban uses the default configuration in the <code>jail.conf</code> file. However, it is not recommended to use the default configuration files as they can be overwritten by newer updates to the Fail2Ban package. The preferred approach to creating configurations for a particular service is by creating a new configuration file in the <code>/etc/fail2ban</code> directory with the <code>.local</code> extension. Configuring it can be done by following these steps:
+        <ol class="list-decimal">
+            <li>Create a new file within the same directory called <code>jail.local</code>. You can then add the necessary security configurations for the sshd jail:
+            <pre><code class="shell">sudo nano /etc/fail2ban/jail.local</code></pre></li>
+            <li>Insert the options that Fail2Ban uses for blocking of the SSH service:
+<pre><code class="apache">[sshd]
+enabled = true # Jail status (true/false) - This enables or disables the jail
+port = ssh # Port specification
+filter = sshd # Service specific filter (Log filter)
+logpath = /var/log/auth.log # What log to use
+maxretry = 3 # Number of attempts to make before a ban
+findtime = 300 # Amount of time between failed login attempts
+bantime = 3600 # Number of seconds an IP is banned for
+ignoreip = 127.0.0.1 # IP to be allowed</code></pre></li>
+            <li>Restart the Fail2Ban service with the following command:
+            <pre><code class="shell">sudo systemctl restart fail2ban.service</code></pre></li>
+            <li>After restarting the OpenSSH server service, Fail2Ban uses this new configuration and the jail for the sshd service is activated and runs. To test this, create a new user account (i.e. "<code>dev</code>"). Attempt to log into the dev account with an incorrect password three times. After three failed attempts you are blocked from authentication for an hour.</li>
+        </ol>
+    </p>
+</div>
+
+<!-- sshd config -->
+<div id="sshd_config">
+    <h2>
+        <a href="#sshd_config" class="text-2xl font-bold text-amber-600 nav__link" data-link style="margin-left: -22px"># </a>
+        <span class="text-2xl font-bold">sshd_config</span>
+    </h2>
+    <p class="p-5">This is a summary of the most important settings that should be changed in the configuration file (full version can be found 
+        <a href="https://sources.debian.org/src/openssh/1%3A7.9p1-10%2Bdeb10u2/sshd_config/" target="_blank" class="text-sky-400">here</a>; 
+        <a href="https://www.man7.org/linux/man-pages/man5/sshd_config.5.html" target="_blank" class="text-sky-400">MAN page</a>). Descriptions of most important values are written here as comments.
+    </p>
+    <pre><code class="bash">Port 22 # SSH server port
+
+# Logging
+# SyslogFacility determines the category within the system log where SSH messages will be written.
+#   AUTH: (Default) Messages related to authentication attempts (e.g., successful/failed logins).
+#   USER: Messages related to user activity (e.g., successful/failed shell executions, file transfers).
+#   CONN: Messages related to SSH connections (e.g., connection establishment, termination).
+#   MAIL: Messages related to email notifications (e.g., forwarded mail).
+#   DAEMON: Messages related to the SSH daemon itself (e.g., startup, shutdown).
+#   LOCAL0 to LOCAL7: Custom categories defined by your system administrator.
+
+# LogLevel
+# This variable controls the verbosity of the messages logged for the specified facility. Higher log levels include more detailed information.
+#   QUIET: No messages are logged (not recommended for security reasons).
+#   FATAL: Only critical errors that prevent SSH from functioning are logged.
+#   ERROR: Errors and critical warnings are logged.
+#   INFO: Informational messages about successful events (e.g., successful logins) are logged in addition to errors.
+#   VERBOSE: Detailed debugging information is logged, which can be helpful for troubleshooting but might generate a large volume of logs.
+#   DEBUG: Even more detailed debugging information is logged (use with caution due to potential security implications).
+
+SyslogFacility AUTH
+LogLevel INFO
+
+PermitRootLogin no # should root login be allowed? if so, what's the possible methods? [yes/no/prohibit-password]
+#AllowUsers # Alternative to root login restriction - specify only the users, that should be allowed to log into (simply exclude root)
+AuthenticationMethods publickey # Specifies which methods are accepted for authentication
+
+PubkeyAuthentication yes #should pubkey auth be allowed? [yes/no]
+
+AuthorizedKeysFile .ssh/authorized_keys # location of authkeys being stored for pubkey authentication
+
+PasswordAuthentication no # is password authentication allowed
+PermitEmptyPasswords no # can empty passwords be submitted for auth
+
+Banner none # if not none, specify banner path
+
+# override default of no subsystems
+Subsystem	sftp	/usr/lib/ssh/sftp-server</code></pre>
+</div>

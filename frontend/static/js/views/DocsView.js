@@ -9,6 +9,7 @@ export default class extends AbstractView {
     async getHTML() {
         let response = await fetch(`/static/html/docs/${this.postId}.html`);
         let html = await response.text();
+        let footer = "<div class='p-10 m-5 w-full'>&copy; Rokas Stankūnas, 2024.</div";
         if (html.includes("index")) {
             // Throw 404
             response = await fetch(`/static/html/Error_404.html`);
@@ -24,7 +25,7 @@ export default class extends AbstractView {
                     this.setTitle(blogEntry.title + " | Docs");
                 })
                 .catch(error => console.error(error));
-            return `${html}`;
+            return `${html + footer}`;
         }
     }
 }

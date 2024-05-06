@@ -1,7 +1,5 @@
 import Intro from "./views/Intro.js";
-import Docs from "./views/Docs.js";
 import DocsView from "./views/DocsView.js";
-import Contact from "./views/Contact.js";
 import Error404 from "./views/Error_404.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
@@ -24,9 +22,7 @@ const router = async () => {
     const routes = [
         { path: "/404", view: Error404 },
         { path: "/", view: Intro },
-        { path: "/docs", view: Docs },
-        { path: "/docs/:id", view: DocsView },
-        { path: "/contact", view: Contact }
+        { path: "/docs/:id", view: DocsView }
     ];
 
     const potentialMatches = routes.map(route => {
@@ -48,6 +44,7 @@ const router = async () => {
     const view = new match.route.view(getParams(match));
 
     document.querySelector("#app").innerHTML = await view.getHTML();
+    hljs.highlightAll(); // Call hljs.highlightAll();
 };
 
 window.addEventListener("popstate", router);
@@ -58,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             navigateTo(e.target.href);
         }
+        
     });
-    
     router();
 });
